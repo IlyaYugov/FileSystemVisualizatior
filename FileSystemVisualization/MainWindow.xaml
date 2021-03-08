@@ -1,0 +1,76 @@
+﻿<Window x:Class="FileSystemVisualization.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+
+        <Popup x:Name="ContentFillingPopup" StaysOpen="False" Placement="Mouse" MaxWidth="180"
+               AllowsTransparency="True"  >
+            <Grid Background="White">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBox x:Name="FileSystemItemContent" Grid.Row="0" Grid.ColumnSpan="2" Margin="5" />
+                <Button Grid.Row="1" Grid.Column="0" Content="Create" Margin="5"/>
+                <Button Grid.Row="1" Grid.Column="1" Content="Close" Margin="5"/>
+            </Grid>
+        </Popup>
+
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding FileSystemItems}">
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Label Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            Width="{Binding Width}" 
+                            Height="{Binding Height}" 
+                            Content="{Binding Content}"
+                            Margin="5">
+                        <Label.Background>
+                            <SolidColorBrush Color="{Binding BackgroundColor}"></SolidColorBrush>
+                        </Label.Background>
+                        <Label.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Remove" 
+                                          Command="{Binding PlacementTarget.Tag.RemoveFileSystemItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding }"/>
+
+                                <MenuItem Header="Open"
+                                          Command="{Binding PlacementTarget.Tag.OpenFileSystemItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding }"/>
+                            </ContextMenu>
+                        </Label.ContextMenu>
+                    </Label>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+        </ItemsControl>
+
+        <Menu Grid.Row="0" Name ="Menu" Height="25" VerticalAlignment="Top" Width="{Binding Source={x:Static SystemParameters.PrimaryScreenWidth}}">
+            <MenuItem Header="🠔 Back" Command ="{Binding GoToParentCommand}"></MenuItem>
+            <MenuItem Header="Create">
+                <MenuItem Header="File" Command="{Binding CreateFileCommand}"></MenuItem>
+                <MenuItem Header="Directory" Command="{Binding CreateDirectoryCommand}"></MenuItem>
+            </MenuItem>
+        </Menu>
+
+    </Grid>
+</Window>
