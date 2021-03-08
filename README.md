@@ -6,6 +6,7 @@ Deletetig/opening file/directory - right click on file/directory
 Go back, creating file/directory - Menu
 
 TODO:
+0. MultiLine file viwer
 1. Styles
 2. Visual difference between file and directory
 3. Sorting/Editing files
