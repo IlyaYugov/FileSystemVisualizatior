@@ -53,7 +53,8 @@ namespace FileSystemVisualization
         {
             InitializeComponent();
 
-             DirectoryInfo di = new DirectoryInfo(@"C:\Users\Test\Downloads\FileSystemVisualizatior-main");
+             DirectoryInfo di = 
+                new DirectoryInfo(@"C:\Users\Test\Downloads\FileSystemVisualizatior-main");
             // Get a reference to each file in that directory.
             List<FileInfo> files = di.GetFiles().ToList();
 
@@ -86,9 +87,9 @@ namespace FileSystemVisualization
             { 
                 var item = InsertItem(root, file.Length);
                 if(item == null)
-                    break;
-                Canvas.SetLeft(item.Current, 0);
-                Canvas.SetTop(item.Current, 0);
+                    continue;
+                Canvas.SetLeft(item.Current, item.Left);
+                Canvas.SetTop(item.Current, item.Left);
                 FileSystemCanvas.Children.Add(item.Current);
             }
         }
@@ -167,7 +168,7 @@ namespace FileSystemVisualization
             else if(insertedItemWidth <= root.FileLength/2 
                 && root.Children.All( s=> s.FileLength >= root.FileLength / 2))
             {
-                return root.Children[0];
+                return InsertItem(root.Children[0],insertedItemWidth);
             }
             else
                 return null;
