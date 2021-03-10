@@ -9,6 +9,8 @@ namespace FileSystemVisualization.Models
     public class FileSystemItem : INotifyPropertyChanged
     {
         private string content;
+        private double width;
+        private double height;
 
         public FileSystemItemType Type { get; set; }
         public List<FileSystemItem> Children { get; set; }
@@ -24,8 +26,26 @@ namespace FileSystemVisualization.Models
             }
         }
 
-        public int Width => Content.Length * 9;
-        public int Height => 40;
+        public double Width
+        {
+            get => width;
+            set
+            {
+                width = value;
+                OnPropertyChanged("Width");
+            }
+        }
+
+        public double Height
+        {
+            get => height;
+            set
+            {
+                height = value;
+                OnPropertyChanged("Height");
+            }
+        }
+
         public Color BackgroundColor { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;

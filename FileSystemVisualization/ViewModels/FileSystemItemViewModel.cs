@@ -1,58 +1,38 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Media;
 using FileSystemVisualization.Annotations;
 using FileSystemVisualization.Commands;
+using FileSystemVisualization.Extensions;
 using FileSystemVisualization.Models;
 
 namespace FileSystemVisualization.ViewModels
 {
     public class FileSystemItemViewModel : INotifyPropertyChanged
     {
-        public FileSystemItem currentFileSystemItem;
-
-        private byte lastGreenLevel = 100;
-        private byte lastBlueLevel = 0;
+        private FileSystemItem openedFileSystemItem;
 
         private FileSystemItemCommand goToParentCommand;
-        private FileSystemItemCommand сreateFileCommand;
-        private FileSystemItemCommand сreateDirectoryCommand;
 
         private FileSystemItemCommand openFileSystemItemCommand;
         private FileSystemItemCommand removeFileSystemItemCommand;
 
-        public ObservableCollection<FileSystemItem> FileSystemItems { get; set; }
+        private FileSystemItemCreator fileSystemItemCreator;
 
+        public ObservableCollection<FileSystemItem> FileSystemItems { get; set; }
 
         public FileSystemItemViewModel()
         {
-            currentFileSystemItem = new FileSystemItem();
             FileSystemItems = new ObservableCollection<FileSystemItem>();
 
-
-            for (int i = 0; i < 50; i++)
+            openedFileSystemItem = new FileSystemItem
             {
-                FileSystemItems.Add(GetLabels());
-            }
+                Children = new List<FileSystemItem>()
+            };
 
-            currentFileSystemItem.Children = FileSystemItems.ToList();
+            fileSystemItemCreator = new FileSystemItemCreator();
         }
-
-        public FileSystemItemCommand CreateFileCommand => 
-            сreateFileCommand ??= new FileSystemItemCommand(_ =>
-            {
-                CreateFileSystemItemByType(FileSystemItemType.File);
-            });
-
-        public FileSystemItemCommand CreateDirectoryCommand =>
-            сreateDirectoryCommand ??= new FileSystemItemCommand(_ =>
-            {
-                CreateFileSystemItemByType(FileSystemItemType.Directory);
-            });
-
 
         public FileSystemItemCommand GoToParentCommand
         {
@@ -60,15 +40,14 @@ namespace FileSystemVisualization.ViewModels
             {
                 return goToParentCommand ??= new FileSystemItemCommand(_ =>
                 {
-                    if (currentFileSystemItem.Parent == null)
+                    if (openedFileSystemItem.Parent == null)
                         return;
 
+                    openedFileSystemItem.ModifyArea(FileSystemItemAreaType.Miniature);
+                    openedFileSystemItem = openedFileSystemItem.Parent;
+
                     FileSystemItems.Clear();
-                    currentFileSystemItem = currentFileSystemItem.Parent;
-                    foreach (var item in currentFileSystemItem.Children)
-                    {
-                        FileSystemItems.Add(item);
-                    }
+                    FileSystemItems.AddRange(openedFileSystemItem.Children);
                 });
             }
         }
@@ -81,22 +60,11 @@ namespace FileSystemVisualization.ViewModels
                 {
                     if (inputItem is FileSystemItem fileSystemItem)
                     {
+                        openedFileSystemItem = fileSystemItem;
+
                         FileSystemItems.Clear();
-                        currentFileSystemItem = fileSystemItem;
 
-                        switch (fileSystemItem.Type)
-                        {
-                            case FileSystemItemType.Directory:
-                                foreach (var item in currentFileSystemItem.Children)
-                                {
-                                    FileSystemItems.Add(item);
-                                }
-                                break;
-
-                            case FileSystemItemType.File:
-                                FileSystemItems.Add(currentFileSystemItem);
-                                break;
-                        }
+                        ChangeOpenedItemsByNewItemType();
                     }
                 });
             }
@@ -110,8 +78,9 @@ namespace FileSystemVisualization.ViewModels
                     {
                         if (obj is FileSystemItem fileSystemItem)
                         {
+                            openedFileSystemItem.Children.Remove(fileSystemItem);
+
                             FileSystemItems.Remove(fileSystemItem);
-                            currentFileSystemItem.Children.Remove(fileSystemItem);
                         }
                     },
                     (obj) => FileSystemItems.Count > 0);
@@ -127,38 +96,28 @@ namespace FileSystemVisualization.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private FileSystemItem GetLabels()
+        private void ChangeOpenedItemsByNewItemType()
         {
-            return new FileSystemItem
+            switch (openedFileSystemItem.Type)
             {
-                Content = "qweqweqweqwe",
-                Parent = currentFileSystemItem,
-                Type = FileSystemItemType.Directory,
-                Children = new List<FileSystemItem>(),
-                BackgroundColor = Color.FromRgb(0, 100, 0)
-            };
+                case FileSystemItemType.Directory:
+                    FileSystemItems.AddRange(openedFileSystemItem.Children);
+                    break;
+
+                case FileSystemItemType.File:
+                    openedFileSystemItem.ModifyArea(FileSystemItemAreaType.MaximumArea);
+
+                    FileSystemItems.Add(openedFileSystemItem);
+                    break;
+            }
         }
 
-        private void CreateFileSystemItemByType(FileSystemItemType type)
+        public void CreateFileSystemItem(FileSystemItemType type, string content)
         {
-            lastBlueLevel += 20;
+            var newItem = fileSystemItemCreator.Create(type, content, openedFileSystemItem, FileSystemItemAreaType.Miniature);
+            openedFileSystemItem.AddChild(newItem);
 
-            if (lastBlueLevel >= 100)
-            {
-                lastGreenLevel += 10;
-                lastBlueLevel = 0;
-            }
-
-            FileSystemItem item = new FileSystemItem
-            {
-                Children = new List<FileSystemItem>(),
-                Content = "trololo",
-                Parent = currentFileSystemItem,
-                Type = type,
-                BackgroundColor = Color.FromRgb(0, lastGreenLevel, lastBlueLevel)
-            };
-            FileSystemItems.Insert(0, item);
-            currentFileSystemItem.Children.Add(currentFileSystemItem);
+            FileSystemItems.Insert(0, newItem);
         }
     }
 }
